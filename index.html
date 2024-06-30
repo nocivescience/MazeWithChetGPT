@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Generator</title>
+    <style>
+        .cell {
+            width: 40px;
+            height: 40px;
+            box-sizing: border-box;
+            display: inline-block;
+        }
+        .top { border-top: 2px solid black; }
+        .right { border-right: 2px solid black; }
+        .bottom { border-bottom: 2px solid black; }
+        .left { border-left: 2px solid black; }
+    </style>
+</head>
+<body>
+    <div id="maze" style="display: flex; flex-wrap: wrap; width: 400px;"></div>
+
+    <script>
+        const gridSize = 10;
+        let grid = [];
+
+        // Inicializar la cuadrícula con todas las celdas cerradas
+        for (let i = 0; i < gridSize; i++) {
+            let row = [];
+            for (let j = 0; j < gridSize; j++) {
+                row.push({
+                    x: i,
+                    y: j,
+                    top: true,
+                    right: true,
+                    bottom: true,
+                    left: true,
+                    visited: false
+                });
+            }
+            grid.push(row);
+        }
+
+        // Función para obtener vecinos no visitados
+        function getUnvisitedNeighbors(cell) {
+            const { x, y } = cell;
+            let neighbors = [];
+
+            if (x > 0 && !grid[x - 1][y].visited) {
+                neighbors.push(grid[x - 1][y]);
+            }
+            if (x < gridSize - 1 && !grid[x + 1][y].visited) {
+                neighbors.push(grid[x + 1][y]);
+            }
+            if (y > 0 && !grid[x][y - 1].visited) {
+                neighbors.push(grid[x][y - 1]);
+            }
+            if (y < gridSize - 1 && !grid[x][y + 1].visited) {
+                neighbors.push(grid[x][y + 1]);
+            }
+
+            return neighbors;
+        }
+
+        // Función para eliminar la pared entre dos celdas
+        function removeWall(current, next) {
+            if (current.x === next.x) {
+                if (current.y > next.y) {
+                    current.left = false;
+                    next.right = false;
+                } else {
+                    current.right = false;
+                    next.left = false;
+                }
+            } else {
+                if (current.x > next.x) {
+                    current.top = false;
+                    next.bottom = false;
+                } else {
+                    current.bottom = false;
+                    next.top = false;
+                }
+            }
+        }
+
+        // Función principal para generar el laberinto
+        function generateMaze(x, y) {
+            let stack = [];
+            let currentCell = grid[x][y];
+            currentCell.visited = true;
+            stack.push(currentCell);
+
+            while (stack.length > 0) {
+                currentCell = stack.pop();
+                let neighbors = getUnvisitedNeighbors(currentCell);
+
+                if (neighbors.length > 0) {
+                    stack.push(currentCell);
+
+                    // Seleccionar un vecino aleatorio
+                    let nextCell = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    removeWall(currentCell, nextCell);
+                    nextCell.visited = true;
+
+                    stack.push(nextCell);
+                }
+            }
+        }
+
+        // Generar el laberinto empezando desde la esquina superior izquierda
+        generateMaze(0, 0);
+
+        // Mostrar la cuadrícula en HTML
+        const mazeDiv = document.getElementById('maze');
+        for (let i = 0; i < gridSize; i++) {
+            for (let j = 0; j < gridSize; j++) {
+                let cell = grid[i][j];
+                let cellDiv = document.createElement('div');
+                cellDiv.className = 'cell' + (cell.top ? ' top' : '') + (cell.right ? ' right' : '') + (cell.bottom ? ' bottom' : '') + (cell.left ? ' left' : '');
+                mazeDiv.appendChild(cellDiv);
+            }
+        }
+    </script>
+</body>
+</html>
